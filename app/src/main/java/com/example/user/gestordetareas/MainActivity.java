@@ -22,9 +22,11 @@ public class MainActivity extends AppCompatActivity {
 
     ListView usuariosListView;
 
-    List<String> usuarios = new ArrayList<String>();
+    List<String> contactos = new ArrayList<String>();
 
     ArrayAdapter<String> adapter;
+
+    ContactoDao contactoDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +37,17 @@ public class MainActivity extends AppCompatActivity {
         emailEdiText = (EditText)findViewById(R.id.editTextEmail);
         guardarButton = (Button)findViewById(R.id.buttonGuardar);
 
+        //iniciar la BBDD
+        contactoDao = new ContactoDao(this);
+
+        //recuperar todos los contactos
+        List<Contacto> contactosEntidad= contactoDao.seleccionarTodos();
+
+        contactos = contactactosToString(contactosEntidad);
         //crear la lista
         usuariosListView = (ListView)findViewById(R.id.listViewUsuarios);
 
-        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,android.R.id.text1,usuarios);
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,android.R.id.text1,contactos);
 
         usuariosListView.setAdapter(adapter);
 
@@ -61,9 +70,15 @@ public class MainActivity extends AppCompatActivity {
                     String mensaje = "Bienvenido"+nombre+" "+email;
                     Toast.makeText(getApplicationContext(),mensaje, Toast.LENGTH_LONG).show();
 
+                    Contacto c = new Contacto();
+                    c.setNombre(nombre);
+                    c.setEmail(email);
+                    contactoDao.crear(c);
+
                     //agregar datos
                     String datos = nombre+" "+email;
-                    usuarios.add(datos);
+
+                    contactos.add(datos);
                     adapter.notifyDataSetChanged();
 
                     nombreEdiText.setText(null);
@@ -73,6 +88,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private List<String> contactactosToString(List<Contacto> contactosEntidad) {
+        List<String> result= new ArrayList<>();
+        for(Contacto c:contactosEntidad){
+            result.add(c.getNombre()+"\n"+c.getEmail());
+        }
+        return result;
+
+
+    }
+
     private boolean validarNombre (String nombre){
 
         return !nombre.equals("");
